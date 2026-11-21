@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
-repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+# Slurm runs a spool copy of this file; --chdir still points at the checkout.
+launcher_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -f "$launcher_root/pipeline_tools.ipynb" ]]; then
+    repo_root="$launcher_root"
+elif [[ -f "$PWD/pipeline_tools.ipynb" ]]; then
+    repo_root="$PWD"
+elif [[ -n "${SLURM_SUBMIT_DIR:-}" && -f "$SLURM_SUBMIT_DIR/pipeline_tools.ipynb" ]]; then
+    repo_root="$SLURM_SUBMIT_DIR"
+else
+    printf 'Cannot locate pipeline_tools.ipynb; run from the repository root or submit with --chdir pointing there.\n' >&2
+    exit 1
+fi
 cd "$repo_root"
 if [[ -n "${NCA_ENV_SCRIPT:-}" ]]; then
     # Site login/module scripts may expand unset interactive-shell variables.
