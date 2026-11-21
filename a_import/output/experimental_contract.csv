@@ -1,0 +1,17 @@
+item,definition
+state,RGBA + private hidden channels; every grid site computes synchronously
+seed cue,"one site only: presence, cos(theta), sin(theta), saturation, RGB gains, p, u"
+translation,move the seed; no absolute coordinates enter the model
+rotation/color,conditioned reconstruction and held-out transformation generalization; not guaranteed group invariance
+messages,one hard bit per directed edge; direction-aware addressed inbox with eight Moore ports
+query/answer,requester sends q; neighbor receiver reads local state + q; neighbor sends one-bit r back
+no bypass,"no neighbor RGBA/hidden reads, spatial convolutions, global cue broadcast or neighbor alpha gating"
+hard training,hard threshold or Bernoulli in forward pass; biased sigmoid straight-through gradients
+Bernoulli,p_bit = floor + (1 - 2*floor)*sigmoid(logit / temperature); floor keeps uncertainty from vanishing
+external errors,"independent bit flips are evaluation interventions, separate from Bernoulli generation"
+budget regimes,same update counts or same directed-bit counts; parameter counts approximately matched
+Phase 2 choice,"target = smiley iff u < p; only p and u enter the seed, never the chosen class"
+response,change seed p/u in a running state; also test damage repair and persistence
+limits,"two known templates; no claim of novel categories, autonomous evolution or VAE/GAN training"
+replicates,"all generators initialized at 63; disjoint jumped/advanced streams, paired across configurations"
+validation,checkpoint selection uses validation only; hold-out tests never affect optimizer or selection

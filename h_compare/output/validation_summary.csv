@@ -1,0 +1,24 @@
+check,passed,details
+notebook validity: a_import/output/executed.ipynb,True,6 code cells; no error outputs
+notebook validity: a_import/src/a_import.ipynb,True,6 code cells; no error outputs
+notebook validity: b_prepare/output/executed.ipynb,True,7 code cells; no error outputs
+notebook validity: b_prepare/src/b_prepare.ipynb,True,7 code cells; no error outputs
+notebook validity: c_models/output/executed.ipynb,True,18 code cells; no error outputs
+notebook validity: c_models/output/runtime.ipynb,True,13 code cells; no error outputs
+notebook validity: c_models/src/c_models.ipynb,True,18 code cells; no error outputs
+notebook validity: d_phase1_train/output/executed.ipynb,True,5 code cells; no error outputs
+notebook validity: d_phase1_train/src/d_phase1_train.ipynb,True,5 code cells; no error outputs
+notebook validity: e_phase1_test/output/executed.ipynb,True,8 code cells; no error outputs
+notebook validity: e_phase1_test/src/e_phase1_test.ipynb,True,8 code cells; no error outputs
+notebook validity: f_phase2_train/output/executed.ipynb,True,6 code cells; no error outputs
+notebook validity: f_phase2_train/src/f_phase2_train.ipynb,True,6 code cells; no error outputs
+notebook validity: g_phase2_test/output/executed.ipynb,True,9 code cells; no error outputs
+notebook validity: g_phase2_test/src/g_phase2_test.ipynb,True,9 code cells; no error outputs
+notebook validity: h_compare/output/executed.ipynb,True,15 code cells; no error outputs
+notebook validity: h_compare/src/h_compare.ipynb,True,15 code cells; no error outputs
+notebook validity: run_pipeline.ipynb,True,6 code cells; no error outputs
+notebook validity: run_pipeline_smoke_executed.ipynb,True,6 code cells; no error outputs
+end-to-end smoke,True,six designs x two phases x two budget regimes = 24 short training runs; all eight pipeline tasks complete
+communication contract,True,"29 routing, binary-forward, causality, stochasticity, replay and gradient checks"
+matched training budgets,True,4 phase/regime/replicate checks
+Sam code format,True,all delivered executable source is .ipynb; code cells only; seed 63; ordered PDP tasks and relative symlinks

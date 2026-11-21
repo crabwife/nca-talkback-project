@@ -1,0 +1,19 @@
+item,interpretation
+run status,SMOKE: execution check only
+evidence threshold,smoke validates execution only; pilot is exploratory; use independent streams and training diagnostics before conclusions
+uncertainty,replicate bootstrap across trained runs; one-replicate profiles have no between-run CI
+calibration uncertainty,latent-level bootstrap within run; repeated communication draws are clustered by latent
+fairness,"both equal updates and equal bits are trained; parameters approximately matched; compute/MACs are reported, not matched"
+pose/color,conditional transformation generalization; the architecture does not enforce arbitrary rotation/color equivariance
+seed access,only the seed receives continuous environmental controls; every other site learns them through binary edges
+bandwidth,"one bit per directed edge per round, not one total bit received per cell; query+answer costs two rounds"
+deterministic models,fixed seed/cues produce one trajectory; differing latent draws or cue schedules permit different outcomes
+stochastic models,Bernoulli probability floor prevents arbitrarily reliable learned messages; exogenous flips are separate stress tests
+invalid images,"nearest-template labels are accepted only with quality, margin and alpha-overlap criteria; unresolved outputs remain explicit"
+online response,adaptation success requires a valid original form; unsuccessful trials have censored latency
+latency,successful-only median is descriptive and selection-biased; inspect the censored trial-level table
+generalization unit,held-out transformations of two known images; no held-out semantic image classes
+Phase 2 scope,conditional supervised latent generator and changing-cue response; no VAE/GAN objective or autonomous evolution
+training gradient,straight-through sigmoid is biased; strict binary forward communication is preserved
+substrate,all cells are computationally active; no neighbor-alpha life gating that could bypass the bit restriction
+replication,seed 63 and disjoint advanced streams; exact equality across different PyTorch/device versions is not guaranteed

@@ -1,0 +1,5 @@
+phase,regime,replicate,matched_quantity,value_per_run,passed
+1,bits,0,training_bits,155664,True
+1,updates,0,training_cell_updates,20736,True
+2,bits,0,training_bits,172960,True
+2,updates,0,training_cell_updates,23040,True

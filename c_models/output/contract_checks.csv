@@ -1,0 +1,30 @@
+model,check,passed
+all,east-going bit arrives in the east neighbor west inbox; no wrap,True
+1A_det,"hard train-time wires, seed-only cue, encoder gradients",True
+1A_det,exact replay from saved channel RNG state,True
+1A_det,deterministic forward independent of channel RNG,True
+1A_det,one macro-step influence stays within one Moore hop,True
+1A_bern,"hard train-time wires, seed-only cue, encoder gradients",True
+1A_bern,exact replay from saved channel RNG state,True
+1A_bern,sampled messages change fixed-input output,True
+1A_bern,one macro-step influence stays within one Moore hop,True
+1B_det,"hard train-time wires, seed-only cue, encoder gradients",True
+1B_det,exact replay from saved channel RNG state,True
+1B_det,deterministic forward independent of channel RNG,True
+1B_det,one macro-step influence stays within one Moore hop,True
+1B_det,response logit depends on received query,True
+1B_qbern,"hard train-time wires, seed-only cue, encoder gradients",True
+1B_qbern,exact replay from saved channel RNG state,True
+1B_qbern,sampled messages change fixed-input output,True
+1B_qbern,one macro-step influence stays within one Moore hop,True
+1B_qbern,response logit depends on received query,True
+1B_rbern,"hard train-time wires, seed-only cue, encoder gradients",True
+1B_rbern,exact replay from saved channel RNG state,True
+1B_rbern,sampled messages change fixed-input output,True
+1B_rbern,one macro-step influence stays within one Moore hop,True
+1B_rbern,response logit depends on received query,True
+1B_qrbern,"hard train-time wires, seed-only cue, encoder gradients",True
+1B_qrbern,exact replay from saved channel RNG state,True
+1B_qrbern,sampled messages change fixed-input output,True
+1B_qrbern,one macro-step influence stays within one Moore hop,True
+1B_qrbern,response logit depends on received query,True

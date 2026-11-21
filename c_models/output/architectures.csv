@@ -1,0 +1,13 @@
+model,family,regime,width,parameters,parameter_target,macs_per_cell_update,rounds_per_update,steps_at_eval,bits_per_eval_image
+1A_det,message,updates,22,1219,1200,4246,1,6,25944
+1A_det,message,bits,22,1219,1200,4246,1,6,25944
+1A_bern,message,updates,22,1219,1200,4246,1,6,25944
+1A_bern,message,bits,22,1219,1200,4246,1,6,25944
+1B_det,query_answer,updates,10,1160,1200,5370,2,6,51888
+1B_det,query_answer,bits,10,1160,1200,5370,2,3,25944
+1B_qbern,query_answer,updates,10,1160,1200,5370,2,6,51888
+1B_qbern,query_answer,bits,10,1160,1200,5370,2,3,25944
+1B_rbern,query_answer,updates,10,1160,1200,5370,2,6,51888
+1B_rbern,query_answer,bits,10,1160,1200,5370,2,3,25944
+1B_qrbern,query_answer,updates,10,1160,1200,5370,2,6,51888
+1B_qrbern,query_answer,bits,10,1160,1200,5370,2,3,25944

@@ -1,0 +1,19 @@
+# Local environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+.local/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

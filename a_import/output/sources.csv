@@ -1,0 +1,6 @@
+topic,url
+NCA growth/persistence/repair,https://distill.pub/2020/growing-ca/
+local conditional response,https://arxiv.org/abs/2305.12971
+straight-through estimator caveat,https://arxiv.org/abs/1308.3432
+reproducibility limits,https://docs.pytorch.org/docs/stable/notes/randomness.html
+Bernoulli sampling API,https://docs.pytorch.org/docs/stable/generated/torch.bernoulli.html

@@ -1,0 +1,12 @@
+[
+  {
+    "name": "cat",
+    "origin": "authored geometric fixture",
+    "sha256": "e07caebac84c412e6192918f5e6e0121d5a616ce74e3f240cff77a69d6eea517"
+  },
+  {
+    "name": "smiley",
+    "origin": "authored geometric fixture",
+    "sha256": "eec3a49281df456431b658de160b829fba2258f6be58a61c4e796af5ec348b99"
+  }
+]

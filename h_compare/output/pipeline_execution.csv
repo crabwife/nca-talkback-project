@@ -1,0 +1,9 @@
+stage,profile,seconds
+a_import,smoke,7.016298459144309
+b_prepare,smoke,5.675548959057778
+c_models,smoke,3.3747497079893947
+d_phase1_train,smoke,4.829866333864629
+e_phase1_test,smoke,6.26313320803456
+f_phase2_train,smoke,4.292731458088383
+g_phase2_test,smoke,7.466822250047699
+h_compare,smoke,7.892933875089511

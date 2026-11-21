@@ -1,0 +1,13 @@
+model,regime,replicate,n_switches,n_valid_starts,valid_start_fraction,adaptation_success_all_starts,response_success_given_valid_start,median_latency_successes_only,latency_success_count
+1A_bern,bits,0,4,0,0.0,0.0,,,0
+1A_bern,updates,0,4,0,0.0,0.0,,,0
+1A_det,bits,0,4,0,0.0,0.0,,,0
+1A_det,updates,0,4,0,0.0,0.0,,,0
+1B_det,bits,0,4,0,0.0,0.0,,,0
+1B_det,updates,0,4,0,0.0,0.0,,,0
+1B_qbern,bits,0,4,0,0.0,0.0,,,0
+1B_qbern,updates,0,4,0,0.0,0.0,,,0
+1B_qrbern,bits,0,4,0,0.0,0.0,,,0
+1B_qrbern,updates,0,4,0,0.0,0.0,,,0
+1B_rbern,bits,0,4,0,0.0,0.0,,,0
+1B_rbern,updates,0,4,0,0.0,0.0,,,0

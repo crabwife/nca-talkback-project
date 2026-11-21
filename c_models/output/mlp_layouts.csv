@@ -1,0 +1,21 @@
+model,mlp,layers,sharing
+1A_det,encoder,"Linear(19, 22) -> Tanh -> Linear(22, 1)",same weights at every site/port
+1A_det,update,"Linear(25, 22) -> Tanh -> Linear(22, 8)",same weights at every site/port
+1A_bern,encoder,"Linear(19, 22) -> Tanh -> Linear(22, 1)",same weights at every site/port
+1A_bern,update,"Linear(25, 22) -> Tanh -> Linear(22, 8)",same weights at every site/port
+1B_det,q_encoder,"Linear(19, 10) -> Tanh -> Linear(10, 1)",same weights at every site/port
+1B_det,receiver,"Linear(20, 10) -> Tanh -> Linear(10, 10) -> Tanh",same weights at every site/port
+1B_det,r_encoder,"Linear(10, 10) -> Tanh -> Linear(10, 1)",same weights at every site/port
+1B_det,update,"Linear(41, 10) -> Tanh -> Linear(10, 8)",same weights at every site/port
+1B_qbern,q_encoder,"Linear(19, 10) -> Tanh -> Linear(10, 1)",same weights at every site/port
+1B_qbern,receiver,"Linear(20, 10) -> Tanh -> Linear(10, 10) -> Tanh",same weights at every site/port
+1B_qbern,r_encoder,"Linear(10, 10) -> Tanh -> Linear(10, 1)",same weights at every site/port
+1B_qbern,update,"Linear(41, 10) -> Tanh -> Linear(10, 8)",same weights at every site/port
+1B_rbern,q_encoder,"Linear(19, 10) -> Tanh -> Linear(10, 1)",same weights at every site/port
+1B_rbern,receiver,"Linear(20, 10) -> Tanh -> Linear(10, 10) -> Tanh",same weights at every site/port
+1B_rbern,r_encoder,"Linear(10, 10) -> Tanh -> Linear(10, 1)",same weights at every site/port
+1B_rbern,update,"Linear(41, 10) -> Tanh -> Linear(10, 8)",same weights at every site/port
+1B_qrbern,q_encoder,"Linear(19, 10) -> Tanh -> Linear(10, 1)",same weights at every site/port
+1B_qrbern,receiver,"Linear(20, 10) -> Tanh -> Linear(10, 10) -> Tanh",same weights at every site/port
+1B_qrbern,r_encoder,"Linear(10, 10) -> Tanh -> Linear(10, 1)",same weights at every site/port
+1B_qrbern,update,"Linear(41, 10) -> Tanh -> Linear(10, 8)",same weights at every site/port

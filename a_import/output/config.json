@@ -1,0 +1,108 @@
+{
+  "grid": 24,
+  "sprite": 10,
+  "shift": 2,
+  "state_dim": 8,
+  "parameter_target": 1200,
+  "batch_size": 2,
+  "pool_size": 8,
+  "steps1": 4,
+  "steps2": 4,
+  "rollout_min": 4,
+  "rollout_max": 6,
+  "eval_steps": 6,
+  "val_every": 2,
+  "replicates": 1,
+  "eval_cases": 3,
+  "latent_samples": 4,
+  "channel_trials": 1,
+  "val_trials": 1,
+  "calibration_ps": [
+    0.0,
+    0.5,
+    1.0
+  ],
+  "profile": "smoke",
+  "seed": 63,
+  "models": [
+    {
+      "name": "1A_det",
+      "family": "message",
+      "message_stochastic": false,
+      "query_stochastic": false,
+      "response_stochastic": false
+    },
+    {
+      "name": "1A_bern",
+      "family": "message",
+      "message_stochastic": true,
+      "query_stochastic": false,
+      "response_stochastic": false
+    },
+    {
+      "name": "1B_det",
+      "family": "query_answer",
+      "message_stochastic": false,
+      "query_stochastic": false,
+      "response_stochastic": false
+    },
+    {
+      "name": "1B_qbern",
+      "family": "query_answer",
+      "message_stochastic": false,
+      "query_stochastic": true,
+      "response_stochastic": false
+    },
+    {
+      "name": "1B_rbern",
+      "family": "query_answer",
+      "message_stochastic": false,
+      "query_stochastic": false,
+      "response_stochastic": true
+    },
+    {
+      "name": "1B_qrbern",
+      "family": "query_answer",
+      "message_stochastic": false,
+      "query_stochastic": true,
+      "response_stochastic": true
+    }
+  ],
+  "device": "cpu",
+  "resume": false,
+  "cpu_threads": 1,
+  "cue_dim": 9,
+  "budget_regimes": [
+    "updates",
+    "bits"
+  ],
+  "learning_rate": 0.001,
+  "step_size": 0.15,
+  "state_bound": 8.0,
+  "grad_clip": 1.0,
+  "state_penalty": 0.0001,
+  "foreground_weight": 4.0,
+  "bernoulli_floor": 0.05,
+  "temperature": 1.0,
+  "reset_fraction": 0.25,
+  "damage_probability": 0.25,
+  "switch_probability": 0.5,
+  "damage_radius_fraction": 0.15,
+  "train_ps": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "stress_flip_rates": [
+    0.0,
+    0.2
+  ],
+  "quality_ratio_max": 0.35,
+  "class_margin_min": 0.15,
+  "alpha_iou_min": 0.4,
+  "stable_success_points": 2,
+  "phase2_initialization": "phase1",
+  "protocol_version": 1
+}

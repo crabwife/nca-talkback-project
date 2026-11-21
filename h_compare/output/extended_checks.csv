@@ -1,0 +1,6 @@
+check,passed,details
+"pilot preparation: split disjointness, transform bounds, grey colors",True,736 transform conditions
+"full preparation: split disjointness, transform bounds, grey colors",True,736 transform conditions
+1A_det: interrupted/resumed vs continuous training,True,"exact weights, pool, channel/data RNG, losses, gradients and bit counters"
+1B_qrbern: interrupted/resumed vs continuous training,True,"exact weights, pool, channel/data RNG, losses, gradients and bit counters"
+deterministic model: optimization diagnostic,True,validation loss 0.099550 -> 0.088649; not evidence of converged image generation
