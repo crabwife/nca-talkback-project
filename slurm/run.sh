@@ -3,7 +3,10 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 if [[ -n "${NCA_ENV_SCRIPT:-}" ]]; then
+    # Site login/module scripts may expand unset interactive-shell variables.
+    set +u
     source "$NCA_ENV_SCRIPT"
+    set -u
 fi
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 export PYTHONUNBUFFERED=1
