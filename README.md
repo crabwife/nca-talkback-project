@@ -21,7 +21,50 @@ Use a **CUDA-enabled Linux PyTorch build** compatible with VACC's GPU/driver. `t
 
 If compute jobs need modules or environment activation, put those commands in an external setup script and set `export NCA_ENV_SCRIPT=/absolute/path/to/setup.sh` before submission. The launcher sources it on the compute node. `NCA_PYTHON` is saved in the submitted environment as an absolute interpreter path. Use shared storage visible to compute nodes, and keep the repository/experiment path unchanged while jobs run.
 
-## GPU smoke test
+## Fixed-image reconstruction diagnostic
+
+The first full run produced blobs and almost no confirmed conditional generations. Use `reconstruct` before another full comparison. It runs only Phase 1 on one centered, upright, full-color cat, with three approximately parameter-matched models: `continuous_control`, `1A_det`, and `1B_det`. There are no transformations, damage, stochastic channels, or class switching in this diagnostic. The existing `smoke`, `pilot`, `full`, and `benchmark` profiles retain their original scientific settings.
+
+From the repository root, with your existing environment activated:
+
+```bash
+git pull --ff-only
+bash slurm/run.sh submit --profile reconstruct-smoke --experiment vacc-reconstruct-smoke-001 --max-parallel 2 --time 01:00:00
+```
+
+`reconstruct-smoke` runs four optimizer steps per model and checks execution only. After that completes, submit the learning test with a new experiment name:
+
+```bash
+bash slurm/run.sh submit --profile reconstruct --experiment vacc-reconstruct-001 --max-parallel 2 --time 04:00:00
+```
+
+Both profiles submit three dependent jobs: preparation, a three-task training array, then reconstruction evaluation. The scheduler reads the array size and enabled phases from the same `a_import` settings function as preparation. The learning profile uses a 24×24 grid, a 14-pixel sprite canvas, 16 state channels, approximately 6,000 parameters, and 6,000 optimizer steps per model. It trains from fresh seeds for the first 2,000 steps, then introduces the state pool for persistence, without damage. ReLU MLPs, per-parameter gradient normalization, and a foreground interior RGB-gradient loss supplement the original weighted pixel loss. Checkpoint selection averages reconstruction loss at 48 and 96 rollout steps.
+
+The binary models continue to exchange exactly one hard bit per directed edge per round, including during training. A zero-centered update, `MLP(input) - MLP(0)`, keeps a zero-input cell at zero while retaining straight-through gradients for a received zero bit. Dormant senders emit zero; activation depends on private state, the seed-local cue, and received payloads. No neighbor alpha/activity mask is provided. Independent bit-flip tests can still turn a dormant sender's zero into a received one. The continuous positive control is explicitly outside the one-bit restriction: it reads eight neighbor state vectors, charged as 32 bits per scalar. It is a control for learnability, not evidence about binary communication performance.
+
+Inspect results here:
+
+```text
+.local/experiments/vacc-reconstruct-001/e_phase1_test/output/
+  reconstruction_examples.png
+  reconstruction_learning.png
+  reconstruction_summary.csv
+  reconstruction_baselines.csv
+  reconstruction_metrics.csv
+  reconstruction_gate.json
+```
+
+Examples show the target, generation after 48 steps, and persistence after 96 steps. A featureless, flat-color baseline uses the **oracle target mask**: it has perfect silhouette overlap but lacks facial detail. The quality screen requires foreground RMSE ≤ 0.10, alpha IoU ≥ 0.85, and interior-detail RMSE ≤ 0.75 times this baseline. The CSV/JSON records each model's pass/fail at both horizons; pipeline completion does not imply a quality pass. These are diagnostic thresholds, not a semantic image classifier. Training, validation, and evaluation use the same fixed template with separate rollout-role IDs; this task makes no held-out-image or transformation-generalization claim.
+
+```bash
+bash slurm/run.sh status --experiment vacc-reconstruct-001
+```
+
+Status now reads the two actual training directories rather than their downstream symlink aliases, so each run appears once. Historical experiment artifacts remain separate. Use a new experiment name after pulling changed source; old runs intentionally fail the source-identity check on resume. Do not pull while jobs are running.
+
+If `NCA_ENV_SCRIPT` still points to the site-startup script that failed in your earlier submission, unset it before submitting; keep a working setup script if your GPU environment requires it. Use `bash slurm/run.sh local --profile reconstruct-smoke --device cpu --experiment reconstruct-smoke-local-001` for the same short diagnostic locally. The root notebook defaults to that profile as well.
+
+## Original two-phase GPU smoke test
 
 From the repository root, inspect the commands first:
 
@@ -128,3 +171,7 @@ CPU smoke execution and scheduler command/dependency construction can be tested 
 ## Validation performed
 
 The CLI smoke pipeline completed all 24 short training jobs and all analysis stages on CPU. Additional checks covered scheduler resources/dependencies, full and benchmark array bounds, simultaneous independent workers, rejection of incomplete manifests, exact same-device checkpoint resumption for deterministic and Bernoulli models, incompatible-source rejection, duplicate-writer locks, explicit-resume guards, error propagation, experiment isolation, and controller cancellation cleaning up its child process. The device-migration control path was exercised with a CPU device alias; actual CPU-to-CUDA continuation remains to be verified on GPU hardware. No VACC jobs were submitted during development.
+
+The reconstruction addition completed its three-model CPU smoke pipeline and 19 preparation contract checks, including zero-valued wire gradients, exact binary payloads, quiet empty grids, and external-flip activation. Separate checks covered both scheduler workflows, exact checkpoint continuation across the fresh-seed/pool transition, unique progress rows, and exact legacy forward values, gradients, and bit costs for all six original models. The original 24-run, two-phase CPU smoke also completed. These checks establish execution and contract behavior, not successful binary image learning.
+
+A CPU development probe using the authored cat fixture, the zero-centered continuous control, and the growth-first curriculum passed the reconstruction screen at optimizer step 2700. Foreground RMSE was 0.0129 at 48 rollout steps and 0.0139 at 96 steps; alpha IoU was 1.0 at both horizons, and interior-detail error was about 0.07 times the flat-color baseline. This is one seed-63, fixed-template positive-control result. The deterministic one-bit models still need the reconstruction experiment; these results do not establish their image quality, transformation generalization, or Phase 2 adaptation. GPU execution of the new profile was not tested during development.
