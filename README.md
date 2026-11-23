@@ -1,4 +1,115 @@
-# Limited-communication NCA experiments
+# Limited bandwidth and reliability in neural cellular automata
+
+The current study is **Phase 1 only**: one image reproduced under translation, rotation and color changes. There is no second-class generation, switching, damage-repair task, or Phase 2 in any `study-*` profile. All Python source remains in code-only notebooks, seed 63, with ordered PDP handoffs:
+
+`a_import → b_prepare → c_models → d_phase1_train → e_phase1_test → f_compare`
+
+The six original protocols are retained: outbound deterministic/Bernoulli messages, and deterministic/query-Bernoulli/reply-Bernoulli/both-Bernoulli query–reply. New study profiles sweep **MLP hidden widths 32/64/128** and **1/2/4-bit vector payloads**. Widths are hidden-unit counts, not transmitted bits. The private cell state is **16 channels in every study profile**.
+
+## Start on VACC
+
+From the existing repository root and activated Python environment:
+
+```bash
+git pull --ff-only
+bash slurm/run.sh plan --profile study-smoke
+bash slurm/run.sh submit --profile study-smoke --experiment vacc-study-smoke-001 --max-parallel 2 --time 01:00:00
+```
+
+After the smoke completes, test learning and throughput across all requested widths before the larger experiments:
+
+```bash
+bash slurm/run.sh plan --profile study-pilot
+bash slurm/run.sh submit --profile study-pilot --experiment vacc-study-pilot-001 --max-parallel 2 --time 04:00:00
+```
+
+`plan` only displays the matrix and task count; it creates no experiment and submits nothing. Add `--dry-run` to `submit` to inspect exact scheduler commands. A new named experiment isolates its data, checkpoints and results under `.local/experiments/EXPERIMENT/`.
+
+| Profile | Hidden widths | Steps per training row | Replicate streams | Training rows |
+|---|---|---:|---:|---:|
+| `study-smoke` | 32 | 2 | 1 | 70 |
+| `study-pilot` | 32, 64, 128 | 200 | 1 | 210 |
+| `study-clean` | 32, 64, 128 | 6000 | 5 | 330 |
+| `study-full` | 32, 64, 128 | 6000 | 5 | 1410 |
+| `study-matched` | Requested 32, 64, 128; actual widths adjusted to match parameters | 6000 | 5 | 1410 |
+
+Counts include budget regimes and controls. Smoke checks execution, not learned image quality. Pilot/full include the complete width axis; direct contract tests also cover all three widths. `study-clean` contains deterministic clean-channel models and controls. `study-full` adds the four learned-Bernoulli variants and independently corrupted deterministic messages, queries, replies, or queries+replies, trained at flip rates 0.05 and 0.20. Pilot/smoke use a single training flip rate of 0.10. Bernoulli probability floors are fixed at 0.05. These are separate named experiments, not automatic stages that copy weights from earlier profiles. Overlapping configurations with the same replicate IDs are paired repetitions, not additional independent replicates.
+
+For the clean and full studies, use new names:
+
+```bash
+bash slurm/run.sh submit --profile study-clean --experiment vacc-study-clean-001 --max-parallel 2 --time 12:00:00
+bash slurm/run.sh submit --profile study-full --experiment vacc-study-full-001 --max-parallel 2 --time 12:00:00
+```
+
+These example walltimes are resource requests, not measured runtime predictions. Use pilot timings to select the allocation. `study-matched` is an optional parameter-capacity sensitivity analysis after the main width sweep. The full design is deliberately large; inspecting `plan` does not authorize or trigger a run.
+
+## What the comparisons mean
+
+Each directed neighbor port carries a vector of 1, 2 or 4 hard bits. Query and reply each have that length, and both are charged. The encoder, receiver and update networks use the selected hidden width. Private states and transformation cues never bypass the message channel; only the seed receives the transformation cue. Updates are zero-centered so an empty grid remains zero without a cue or received activity. No neighbor alpha/alive-mask is provided to the binary models.
+
+Two training/evaluation regimes are explicit:
+
+- `updates`: identical actual state-update counts, with bandwidth costs allowed to differ.
+- `bits`: identical total directed transmitted-bit counts, including zero bits, queries and replies. Larger payloads consequently get fewer update steps. Reference rollout lengths are multiples of eight so no rounding silently changes the budgets.
+
+Controls include:
+
+- **Same-shape float messages/query/reply:** identical MLP dimensions and initialized weights to the deterministic binary counterpart, replacing thresholded bits with sigmoid values. Each float32 component is charged at 32 bits. These controls run only in the update-matched regime.
+- **No communication:** payloads are forced to zero, retaining the outbound architecture as an ablation.
+- **Full continuous-neighbor access:** a positive control, explicitly outside the communication restriction; each float32 state component is charged.
+- **Outbound double payload:** message(2b) versus query(b)+reply(b) at equal update counts and transmitted bits. The 8-bit outbound model exists only to match the 4+4-bit query/reply case.
+- **Two sequential outbound updates:** evaluate an existing one-way rule for twice as many steps as a query/reply rule. This has equal transmitted bits but twice the state updates and allows two-hop propagation per paired cycle; those differences remain in the table.
+- **Parameter-matched profile:** the query/reply width is adjusted to the parameter count of the outbound architecture at the requested reference width and payload. Actual counts and residual matching gaps are exported. Width matching and parameter matching answer different questions.
+
+Bernoulli floors apply on active ports; dormant senders emit zero to preserve the quiet-grid rule. Independent external flips act per transmitted bit after encoding, including those dormant zeros. Requesters retain their locally emitted queries; they do not observe which outgoing query bits the channel flipped. Tests distinguish message-only, query-only, reply-only and query+reply corruption. Test rates replace the training corruption rates; learned Bernoulli sampling remains active at every test rate. Thus rate zero means *no external corruption*, not necessarily a deterministic wire. Float controls are not subjected to bit flips, which would require a different, explicitly defined floating-point corruption model.
+
+## Task, selection and outcomes
+
+The default image is an authored cat, or supply `a_import/input/cat.png`. The study uses the original transformation renderer and disjoint train/validation/test condition IDs: held-out combinations, angles, color saturation, translations and their joint composition. This is conditioned reproduction and held-out transformation generalization, not an architectural guarantee of group invariance. An unused smiley asset remains in the legacy data format; all study targets select the cat.
+
+The non-smoke grid is 32×32 with a 14-pixel sprite canvas. Training starts from fresh seeds for 2000 steps, then uses a state pool; no damage or class switches occur. Checkpoint selection averages validation loss at the training-channel conditions over one and two evaluation horizons. Loss combines foreground-weighted pixel error, foreground interior RGB-gradient error and a private-state penalty. Gradients are normalized per parameter before clipping. Full runs validate every 200 steps. Reported test results never select the checkpoint.
+
+Reconstruction success requires foreground RMSE ≤ 0.10, alpha IoU ≥ 0.85 and interior-detail RMSE ≤ 0.75 times a featureless flat-color baseline with the oracle target mask. Raw metrics and per-case pass/fail are retained. Success at the first horizon and persistence at the second horizon are separate rows. These thresholds are diagnostic; pipeline completion is not evidence that an NCA learned its task.
+
+At equal bit budgets, fewer steps can leave target pixels outside the seed's one-hop-per-update causal cone. The reports include target mass outside that cone and, on clean external channels, the foreground-error lower bound caused by those necessarily zero pixels. Read these alongside performance before attributing a failure to MLP capacity or optimization.
+
+All random initializers use seed 63; replicate IDs select independent jumped/advanced streams. Case/channel-trial averages are computed *within* each trained replicate. Confidence intervals resample training replicates only; smoke/pilot intervals are undefined with one replicate. Validation time-to-threshold records unsuccessful runs as censored rather than silently excluding them from averages.
+
+## Distributed execution and results
+
+Slurm runs preparation, training arrays, training-manifest collection, evaluation arrays, and the final comparison controller. Training and evaluation workers have separate directories; only controllers write shared manifests. Each evaluation records its checkpoint and output hashes before it can be collected. Evaluation writers are locked per run. An interrupted evaluation is rerun; completed compatible evaluations are reused with explicit `--resume`.
+
+Large arrays are split into chunks of 500 rows by default. Each chunk uses local Slurm task indices starting at zero and a recorded global row offset, so the global study row count does not become a large array index. Chunks depend on the preceding chunk; `--max-parallel` remains a cap across the experiment's active array chunk. `--array-chunk-size` can be lowered for site limits. Exact commands and job IDs are recorded in `.local/slurm_logs/EXPERIMENT/submission.json`. Jobs request one GPU, two CPUs and 32G; site/environment setup instructions remain below.
+
+```bash
+squeue -u "$USER"
+bash slurm/run.sh status --experiment vacc-study-pilot-001
+```
+
+The definitive run identities are in `job_matrix.csv`; architecture counts are in `c_models/output/architectures.csv`; raw per-case evaluation files are in `e_phase1_test/output/eval_runs/RUN/`. Final outputs are in **`f_compare/output/`**; `comparison_complete.json` marks successful completion of all report stages, independently of the scientific quality gates:
+
+- `comparison.csv`, `replicate_scores.csv`: metrics, success fractions and replicate-level uncertainty.
+- `paired_contrasts.csv`, `paired_contrast_summary.csv`: protocol, reliability, quantization, double-payload and two-update comparisons, with transmitted bits, state updates, estimated linear-layer MACs and parameter counts retained.
+- `query_reply_noise_asymmetry.csv`, `reachability.csv`, `budget_checks.csv`.
+- `validation_reach.csv`, `validation_reach_summary.csv`, `training_history.csv`.
+- `bandwidth_width.png`, `noise_robustness.png`, `transform_examples.png` and `interpretation.csv`.
+
+To retry, keep the same source/environment and experiment name, cancel any remaining jobs from that submission, and repeat the command with `--resume`. Checkpoints are atomic and locked. Source/configuration changes require a new experiment name. Do not pull or edit notebooks while a run is active. Status can still read historical experiments after a source update. No new jobs are submitted merely by pulling the repository.
+
+For a local execution check:
+
+```bash
+bash slurm/run.sh local --profile study-smoke --device cpu --experiment study-smoke-local-001
+```
+
+`run_pipeline.ipynb` defaults to this study smoke profile. Scientific and scheduler settings live in the tagged settings cells of `a_import/src/a_import.ipynb`; the CLI reads those same definitions. Python remains in `.ipynb` files; `slurm/run.sh` is the existing small shell launcher. Validation during development completed a 70-row study smoke pipeline, the legacy 24-run two-phase smoke, width/payload/gradient and sampler checks, both budget invariants, exact checkpoint replay, parallel training/evaluation workers, incomplete/tampered artifact rejection, evaluation resumption and duplicate-writer rejection, parameter-matching checks, and scheduler chunk/offset tests. Actual GPU execution and the large sweeps remain to be run on VACC.
+
+Historical results and legacy profiles remain available below. They are separate from the new Phase 1 study.
+
+---
+
+# Legacy experiment workflows
 
 The six NCA designs and analysis live in the ordered PDP notebooks, `a_import` through `h_compare`. Run the pipeline from the command line on VACC; Jupyter is optional. All Python analysis and orchestration source remains in `.ipynb` files. `slurm/run.sh` is a small shell entry point that executes notebook definitions.
 
@@ -62,7 +173,7 @@ bash slurm/run.sh status --experiment vacc-reconstruct-001
 
 Status now reads the two actual training directories rather than their downstream symlink aliases, so each run appears once. Historical experiment artifacts remain separate. Use a new experiment name after pulling changed source; old runs intentionally fail the source-identity check on resume. Do not pull while jobs are running.
 
-If `NCA_ENV_SCRIPT` still points to the site-startup script that failed in your earlier submission, unset it before submitting; keep a working setup script if your GPU environment requires it. Use `bash slurm/run.sh local --profile reconstruct-smoke --device cpu --experiment reconstruct-smoke-local-001` for the same short diagnostic locally. The root notebook defaults to that profile as well.
+If `NCA_ENV_SCRIPT` still points to the site-startup script that failed in your earlier submission, unset it before submitting; keep a working setup script if your GPU environment requires it. Use `bash slurm/run.sh local --profile reconstruct-smoke --device cpu --experiment reconstruct-smoke-local-001` for the same short diagnostic locally. The root notebook now defaults to `study-smoke`; this older diagnostic remains available explicitly.
 
 ## Original two-phase GPU smoke test
 
@@ -175,3 +286,4 @@ The CLI smoke pipeline completed all 24 short training jobs and all analysis sta
 The reconstruction addition completed its three-model CPU smoke pipeline and 19 preparation contract checks, including zero-valued wire gradients, exact binary payloads, quiet empty grids, and external-flip activation. Separate checks covered both scheduler workflows, exact checkpoint continuation across the fresh-seed/pool transition, unique progress rows, and exact legacy forward values, gradients, and bit costs for all six original models. The original 24-run, two-phase CPU smoke also completed. These checks establish execution and contract behavior, not successful binary image learning.
 
 A CPU development probe using the authored cat fixture, the zero-centered continuous control, and the growth-first curriculum passed the reconstruction screen at optimizer step 2700. Foreground RMSE was 0.0129 at 48 rollout steps and 0.0139 at 96 steps; alpha IoU was 1.0 at both horizons, and interior-detail error was about 0.07 times the flat-color baseline. This is one seed-63, fixed-template positive-control result. The deterministic one-bit models still need the reconstruction experiment; these results do not establish their image quality, transformation generalization, or Phase 2 adaptation. GPU execution of the new profile was not tested during development.
+
