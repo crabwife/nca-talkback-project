@@ -302,3 +302,24 @@ The reconstruction addition completed its three-model CPU smoke pipeline and 19 
 
 A CPU development probe using the authored cat fixture, the zero-centered continuous control, and the growth-first curriculum passed the reconstruction screen at optimizer step 2700. Foreground RMSE was 0.0129 at 48 rollout steps and 0.0139 at 96 steps; alpha IoU was 1.0 at both horizons, and interior-detail error was about 0.07 times the flat-color baseline. This is one seed-63, fixed-template positive-control result. The deterministic one-bit models still need the reconstruction experiment; these results do not establish their image quality, transformation generalization, or Phase 2 adaptation. GPU execution of the new profile was not tested during development.
 
+
+## Bounded conditioning diagnostic
+
+`study-conditioning` is a separate two-run diagnostic, not a change to the bandwidth/reliability sweep. It trains the 128-wide full-continuous baseline with either seed-only cues or transformation cues broadcast to every cell. Architecture, initial weights, private state (16), seed locations, optimizer budget (6000), pool schedule, data splits and evaluation horizons match between variants. One seed-63 replicate is a diagnostic, not an architecture ranking. Broadcast makes six transform channels globally available at every update; presence and legacy probability/latent channels stay local. It is an explicit information bypass and must not be pooled with bandwidth-study results.
+
+Preparation checks all cue encodings, seed locations and rendered targets against the condition table, then checks paired inputs and rejects deliberately swapped cues/pool identities. An assertion failure stops preparation, so dependent training jobs cannot start. Every diagnostic training batch checks that retained/reset pool provenance, selected targets and cues agree. Checkpoint resumption preserves pool provenance. These checks verify bookkeeping, not whether a network has learned to use its cues.
+
+```bash
+git pull --ff-only
+bash slurm/run.sh plan --profile study-conditioning
+bash slurm/run.sh submit --profile study-conditioning --experiment vacc-conditioning-001 --max-parallel 2 --time 04:00:00
+bash slurm/run.sh status --experiment vacc-conditioning-001
+```
+
+For a CPU execution check only: `bash slurm/run.sh local --profile study-conditioning-smoke --experiment conditioning-smoke-001 --device cpu`. The smoke profile uses two optimizer steps and short rollouts; it establishes no learning result.
+
+Expect two training runs, two evaluations, then `comparison_ready=True`. Inspect `f_compare/output/conditioning_examples.png`, `conditioning_learning.png`, `cue_response.csv`, `cue_response_summary.csv`, and standard `replicate_scores.csv`. Preparation audits are handed through to the same directory as `conditioning_preflight.csv` and `conditioning_pairs.csv`.
+
+Paired evaluations hold seed location and all other factors fixed while changing angle or saturation alone, with both training pairs and held-out-factor pairs. They report 64- and 128-update responses. `output_change_mse` measures sensitivity; `target_change_mse` is the required change; `response_ratio` compares their magnitudes (one alone does not establish correctness). `cue_match_advantage` is swapped-target MSE minus correctly paired target MSE; positive values favor correct conditioning, zero suggests no discrimination, and negative values favor the wrong pairing. Standard reconstruction/detail/silhouette metrics remain necessary. Training/held-out pair membership and exact condition IDs are retained. Pairs are selected in fixed table order without reference to output quality; no significance claim is made from this one-replicate diagnostic.
+
+If preflight fails, fix the identified mapping before training. If only broadcasting helps, cue dissemination is a candidate limitation. If both variants fail, investigate optimization/conditioning before interpreting binary-channel failure. This diagnostic trains fresh models; it does not alter or overwrite the completed controls or pilot.
