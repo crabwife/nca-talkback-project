@@ -44,6 +44,21 @@ bash slurm/run.sh submit --profile study-full --experiment vacc-study-full-001 -
 
 These example walltimes are resource requests, not measured runtime predictions. Use pilot timings to select the allocation. `study-matched` is an optional parameter-capacity sensitivity analysis after the main width sweep. The full design is deliberately large; inspecting `plan` does not authorize or trigger a run.
 
+## Longer clean-channel control check
+
+After an unsuccessful pilot, run six controls before another broad sweep. `study-controls` uses continuous-neighbor access, floating-point outbound messages, and floating-point query/reply, each at hidden widths 64 and 128. The four-component float messages have the same inbox/receiver/update layout as their four-bit counterparts; each component is float32, not a hard bit. Private state remains 16 channels. Only update-matched comparisons are run.
+
+This profile keeps the rotation/translation/color task, 32×32 grid, 14-pixel sprite, 6000 optimizer steps, and 2000-step fresh-seed stage followed by the state pool. There is one seed-63 replicate per configuration, no external corruption, and no learned Bernoulli sampling. Deterministic validation uses 16 conditions at 64 and 128 rollout steps every 200 optimizer steps. This is six fresh training runs, not an extension or exact resumption of the 200-step pilot.
+
+```bash
+git pull --ff-only
+bash slurm/run.sh plan --profile study-controls
+bash slurm/run.sh submit --profile study-controls --experiment vacc-study-controls-001 --max-parallel 2 --time 04:00:00
+bash slurm/run.sh status --experiment vacc-study-controls-001
+```
+
+A local pipeline check is available with `--profile study-controls-smoke`: the exact six-model layout, two optimizer steps, and reduced geometry/horizons. It checks execution only. The learning profile has six training rows and six evaluation rows; completion requires `comparison_ready=True`. Results remain in `f_compare/output/`, including `transform_examples.png`, `replicate_scores.csv`, `training_history.csv`, and the additional `learning_curves.png`. Binary bandwidth/noise plots are omitted when no binary models are present; float query/reply versus float outbound comparisons and all control-quality results remain available. An empty corruption-asymmetry table is expected. A single replicate does not establish a reliable success rate. The six-run CPU smoke completed through reports and learning curves; existing study-profile configurations and numerical report summaries were regression-checked. GPU learning quality remains unverified.
+
 ## What the comparisons mean
 
 Each directed neighbor port carries a vector of 1, 2 or 4 hard bits. Query and reply each have that length, and both are charged. The encoder, receiver and update networks use the selected hidden width. Private states and transformation cues never bypass the message channel; only the seed receives the transformation cue. Updates are zero-centered so an empty grid remains zero without a cue or received activity. No neighbor alpha/alive-mask is provided to the binary models.
