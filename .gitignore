@@ -17,3 +17,6 @@ __pycache__/
 .DS_Store
 .vscode/
 .idea/
+
+# locally staged research sprites; identities are captured at import
+a_import/input/sprites/*.png
