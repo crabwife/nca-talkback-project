@@ -360,3 +360,24 @@ bash slurm/run.sh submit --profile study-sprite-smoke --sprite green_crab --expe
 ```
 
 For a CPU pipeline execution check on a suitable machine: `bash slurm/run.sh local --profile study-sprite-smoke --sprite horseshoe_crab --experiment sprite-smoke-001 --device cpu`. Status needs only the experiment name; expect `1 / 1 / 1 / 1 / True`. Inspect `f_compare/output/target_examples.png`, `transform_examples.png`, `sprite_manifest.csv`, `image_provenance.json`, and `replicate_scores.csv`. A missing/invalid sprite fails import rather than substituting a fixture. The actual VACC sprites are not available to the developer workspace: local checks use stand-in transparent 64x64 assets, never replace the user's staged PNGs, and do not establish learning success.
+
+## Bounded cat reliability extension
+
+`study-reliability` keeps the same cat, 32x32 grid, 14-pixel sprite, seed-only cues, state dimension 16, hidden width 128 and four-component packets. It has 39 fresh training runs: 13 configurations times three seed-63 training replicate streams. The original 6000 optimizer steps, 2000 fresh-seed steps, 48/56/64-update rollouts and 64/128-update validation horizons are retained. No crab, width sweep, equal-bit training or Phase 2 is included.
+
+The 13 configurations are: outbound deterministic and Bernoulli; query/reply deterministic, query-Bernoulli, reply-Bernoulli and both-Bernoulli; four deterministic encoders trained with independent 10% external flips (outbound message, query only, reply only, both query and reply); two same-shape clean float controls; and the full-continuous-neighbor control. Learned Bernoulli probabilities are floor-bounded to [0.05,0.95]. Bernoulli sampling is used in training and evaluation; hard deterministic encoders have no sampling. Float components have 32 times the payload cost of individual bits. Query/reply has two packet rounds and more parameters; cross-protocol comparisons are not equal-cost.
+
+Every binary model is evaluated with external flip rates 0, .05, .10 and .20. Query and reply are corrupted separately and together. Test flips replace training external flips, rather than adding to them; intrinsic Bernoulli sampling remains active. `test_scope=none` means zero external corruption, not a deterministic Bernoulli channel. Three channel trials per condition are averaged within each training replicate. Validation uses three channel trials under the model's training channel; test stress never selects a checkpoint. This fresh extension reruns its own clean references; it does not resume the previous quantization experiment. Selecting checkpoints under noisy validation differs from the previous one-trial clean study, so use the references within this extension for primary contrasts.
+
+Paired angle/saturation tests also average three trials per training replicate, with the same random field replayed for inputs A and B. This common-random-number coupling prevents independent message noise from masquerading as cue sensitivity. It measures a coupled response, not a distributional distance or an invariance guarantee. Raw response rows retain trial and coupling metadata. Pairs are tested with zero external flips while retaining intrinsic Bernoulli sampling. All models use the same cue/target bookkeeping audits.
+
+```bash
+git pull --ff-only
+bash slurm/run.sh plan --profile study-reliability
+bash slurm/run.sh submit --profile study-reliability --experiment vacc-reliability-001 --max-parallel 8 --time 04:00:00
+bash slurm/run.sh status --experiment vacc-reliability-001
+```
+
+Expect `39 / 39 / 39 / 39 / True`. Evaluation is heavier than the clean study because it includes multiple corruption scopes/rates and noise trials. `study-reliability-smoke` has the identical 13 architecture/channel configurations, one replicate, two optimizer steps, two channel trials and one nonzero test-flip rate; it is an execution check only. Run locally on a suitable machine with `bash slurm/run.sh local --profile study-reliability-smoke --experiment reliability-smoke-001 --device cpu`.
+
+Use `f_compare/output/replicate_scores.csv`, `comparison.csv`, `paired_contrast_summary.csv`, `query_reply_noise_asymmetry.csv`, `cue_response.csv`, `cue_response_replicates.csv`, `cue_response_summary.csv`, `reliability_stress.png`, `reliability_cue_response.png`, `reliability_learning.png` and `transform_examples.png`. Numerical tables retain all splits and horizons; stress figures show train, held-out composition and unseen angle. Example images show replicate zero of the six intrinsic-sampling variants, not all training configurations. Pairs/cases/channel trials are averaged inside a training replicate before bootstrap intervals across the three training replicates; n=3 intervals remain exploratory. A lack of reconstruction success is reported alongside continuous errors and cue response, without an impossibility claim. All earlier profile settings remain unchanged.
