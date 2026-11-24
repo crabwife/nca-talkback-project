@@ -1,0 +1,18 @@
+{
+  "sprites": [
+    {
+      "id": "horseshoe_crab",
+      "file": "horseshoe_crab.png",
+      "role": "baseline",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "id": "green_crab",
+      "file": "green_crab.png",
+      "role": "challenge",
+      "width": 64,
+      "height": 64
+    }
+  ]
+}
