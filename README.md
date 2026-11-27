@@ -437,3 +437,24 @@ bash slurm/run.sh status --experiment vacc-horseshoe-controls-001
 ```
 
 Expect `2 / 2 / 2 / 2 / True`. Reports use the same `f_compare/output/replicate_scores.csv`, `cue_response_summary.csv`, `packet_conditioning_quality.png`, `packet_conditioning_learning.png`, and paired seed/broadcast example filenames as the green-crab check, within this separate experiment. Review reproduction, cue response and persistence; report unseen-angle results separately. A one-replicate feasibility check does not establish uncertainty or universal learnability. The optional `study-horseshoe-controls-smoke` profile uses both continuous cue modes on the native target/grid with two optimizer steps and 8/16-update evaluation; it tests execution only.
+
+## Recovering a prepared study under submission limits
+
+If a large submission stops after an accepted array, `slurm/rolling.sh` resumes the existing Phase 1 communication study with one array of at most 200 tasks and one dependent dispatch controller queued at a time. This avoids exhausting a 1000-job submission limit by queuing every training/evaluation array upfront. It verifies the prepared experiment's original source hash and training result signatures, skips completed compatible training runs, then collects training, evaluates missing runs in bounded batches and produces the final comparison. Completed evaluation artifacts/checkpoints are hash-checked before reuse. The notebook and shell wrapper are additive; they do not change `pipeline_tools.ipynb`, runtime definitions, configuration, or the source hash of existing experiments.
+
+First verify that the original experiment has no queued/running jobs. From the activated repo:
+
+```bash
+git pull --ff-only
+bash slurm/rolling.sh --experiment vacc-cat-full-001 --max-parallel 8 --chunk-size 200 --time 12:00:00 --dry-run
+bash slurm/rolling.sh --experiment vacc-cat-full-001 --max-parallel 8 --chunk-size 200 --time 12:00:00
+```
+
+The dry run should report 500 completed training runs, 910 remaining, and a first batch of 200 for this partially submitted experiment. No scientific work or jobs are created by dry-run. Do not use `submit --resume` for this recovery; it would queue the full array chain upfront again. Do not rename/delete the experiment or pull further changes while rolling work is active. `--account ACCOUNT` can be supplied if needed. The existing per-worker walltime/resources are retained; each dispatch controller requests one GPU as well. This keeps the existing CUDA environment available for final collection/comparison. The max-parallel cap applies within each batch, and only one batch is active at a time. Queuing gaps between batches are possible.
+
+```bash
+squeue -u "$USER"
+bash slurm/run.sh status --experiment vacc-cat-full-001
+```
+
+Progress remains in the existing experiment; final completion is still `1410 / 1410 / 1410 / 1410 / True`. Rolling job IDs, attempted commands and submission errors are journaled immediately to `.local/slurm_logs/EXPERIMENT/rolling.json`; batch-index files identify the original global rows. Logs are `nca-roll-*` in the same directory. Array task IDs are local to each saved index list. An `afterany` continuation checks every prior batch result; on failure it stops with an error instead of silently retrying indefinitely. Fix the failed job/environment, ensure all experiment jobs have ended, then rerun `rolling.sh` to resume missing work. Concurrent experiment submissions are rejected using known job IDs and a dispatch lock. A rejected controller submission can leave an accepted array running; let it finish, then rerun the launcher. This helper recovers already-prepared studies only; it does not change original submission behavior for new experiments.
